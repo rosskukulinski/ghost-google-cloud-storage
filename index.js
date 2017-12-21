@@ -32,12 +32,12 @@ class GStore extends BaseStore {
         targetFilename;
 
         console.log(googleStoragePath);
-        console.log(image);
-        console.log(targetDir);
+        console.log('image', image);
+        console.log('targetDir', targetDir);
 
         return new Promise((resolve, reject) => {
             this.getUniqueFileName(image, targetDir).then(targetFilename => {
-                console.log(targetFilename);
+                console.log('targetFilename', targetFilename);
                 var opts = {
                     destination: targetDir + targetFilename,
                     metadata: {
@@ -47,6 +47,7 @@ class GStore extends BaseStore {
                 };
                 return this.bucket.upload(image.path, opts);
             }).then(function (data) {
+                console.log('data', data);
                 console.log('returned data', googleStoragePath + targetDir + targetFilename);
                 return resolve(googleStoragePath + targetDir + targetFilename);
             }).catch(function (e) {
