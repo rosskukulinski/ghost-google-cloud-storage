@@ -82,6 +82,7 @@ class GStore extends BaseStore {
     }
 
     read (filename) {
+        console.log(filename);
         debug('Request to read file %s', filename);
         var rs = this.bucket.file(filename).createReadStream(), contents = '';
         return new Promise(function (resolve, reject) {
