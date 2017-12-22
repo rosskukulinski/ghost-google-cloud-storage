@@ -4,6 +4,7 @@ var storage     = require('@google-cloud/storage'),
     BaseStore   = require('ghost-storage-base'),
     Promise     = require('bluebird'),
     path        = require('path'),
+    debug       = require('debug')('ghost-gcloud-storage'),
     options     = {};
 
 class GStore extends BaseStore {
@@ -27,9 +28,9 @@ class GStore extends BaseStore {
 
     save(image) {
         if (!options) return Promise.reject('google cloud storage is not configured');
-
         var targetDir = this.getTargetDir(),
         targetFilename = getTargetName(image, targetDir).toLowerCase();
+        debug('Saving image [%s]: %o', targetFilename, image)
         var opts = {
             destination: path.join(targetFilename),
             metadata: {
@@ -40,8 +41,10 @@ class GStore extends BaseStore {
         return new Promise((resolve, reject) => {
             this.bucket.upload(image.path, opts)
             .then(function (data) {
+                debug('Successfully saved image [%s]: %o', targetFilename, data)
                 return resolve('/content/images/'+targetFilename);
             }).catch(function (e) {
+                debug('Failed to save image [%s]: %o', targetFilename, e)
                 return reject(e);
             });
         });
@@ -57,10 +60,12 @@ class GStore extends BaseStore {
         var bucket = gcs.bucket(options.bucket);
         return function (req, res, next) { 
             var file = req.path.replace(/^\//, '')
+            debug('Request to serve image %s', file);
             bucket
             .file(file)
             .createReadStream()
             .on('error', function(err) {
+                debug('Failed to serve image %s: %o', file, err);
                 return next()
             })
             .pipe(res)
@@ -77,18 +82,21 @@ class GStore extends BaseStore {
     }
 
     read (filename) {
-      var rs = this.bucket.file(filename).createReadStream(), contents = '';
-      return new Promise(function (resolve, reject) {
-        rs.on('error', function(err){
-          return reject(err);
+        debug('Request to read file %s', filename);
+        var rs = this.bucket.file(filename).createReadStream(), contents = '';
+        return new Promise(function (resolve, reject) {
+            rs.on('error', function(err){
+                debug('Error reading file %s: %o', err);
+                return reject(err);
+            });
+            rs.on('data', function(data){
+                contents += data;
+            });
+            rs.on('end', function(){
+                debug('Image %s successfully read', filename);
+                return resolve(content);
+            });
         });
-        rs.on('data', function(data){
-          contents += data;
-        });
-        rs.on('end', function(){
-          return resolve(content);
-        });
-      });
     }
 
     delete (filename) {
