@@ -81,10 +81,14 @@ class GStore extends BaseStore {
         });
     }
 
-    read (filename) {
-        console.log(filename);
-        debug('Request to read file %s', filename);
-        var rs = this.bucket.file(filename).createReadStream(), contents = '';
+    read (options) {
+        options = options || {};
+        debug('Request to read file %o', options);
+        // remove trailing slashes
+        options.path = (options.path || '').replace(/\/$|\\$/, '');
+
+        debug('Request to read path %s', options.path);
+        var rs = this.bucket.file(options.path).createReadStream(), contents = '';
         return new Promise(function (resolve, reject) {
             rs.on('error', function(err){
                 debug('Error reading file %s: %o', err);
@@ -94,7 +98,7 @@ class GStore extends BaseStore {
                 contents += data;
             });
             rs.on('end', function(){
-                debug('Image %s successfully read', filename);
+                debug('Image %s successfully read', options.path);
                 return resolve(content);
             });
         });
