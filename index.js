@@ -3,6 +3,7 @@
 var storage     = require('@google-cloud/storage'),
     BaseStore   = require('ghost-storage-base'),
     Promise     = require('bluebird'),
+    path        = require('path'),
     options     = {};
 
 class GStore extends BaseStore {
@@ -28,29 +29,18 @@ class GStore extends BaseStore {
         if (!options) return Promise.reject('google cloud storage is not configured');
 
         var targetDir = this.getTargetDir(),
-        googleStoragePath = `http${this.insecure?'':'s'}://${this.assetDomain}/`,
-        targetFilename;
-
-        console.log(googleStoragePath);
-        console.log('image', image);
-        console.log('targetDir', targetDir);
-
+        targetFilename = getTargetName(image, targetDir).toLowerCase();
+        var opts = {
+            destination: path.join(targetFilename),
+            metadata: {
+                cacheControl: `public, max-age=${this.maxAge}`
+            },
+            public: true
+        };
         return new Promise((resolve, reject) => {
-            this.getUniqueFileName(image, targetDir).then(target => {
-                targetFileName = target;
-                console.log('targetFilename', targetFilename);
-                var opts = {
-                    destination: targetDir + targetFilename,
-                    metadata: {
-                        cacheControl: `public, max-age=${this.maxAge}`
-                    },
-                    public: true
-                };
-                return this.bucket.upload(image.path, opts);
-            }).then(function (data) {
-                console.log('data', data);
-                console.log('returned data', googleStoragePath + targetDir + targetFilename);
-                return resolve(googleStoragePath + targetDir + targetFilename);
+            this.bucket.upload(image.path, opts)
+            .then(function (data) {
+                return resolve('/content/images/'+targetFilename);
             }).catch(function (e) {
                 return reject(e);
             });
@@ -60,7 +50,22 @@ class GStore extends BaseStore {
     // middleware for serving the files
     serve() {
         // a no-op, these are absolute URLs
-        return function (req, res, next) { next(); };
+        var gcs = storage({
+            projectId: options.projectId,
+            keyFilename: options.key
+        });
+        var bucket = gcs.bucket(options.bucket);
+        return function (req, res, next) { 
+            var file = req.path.replace(/^\//, '')
+            bucket
+            .file(file)
+            .createReadStream()
+            .on('error', function(err) {
+                return next()
+            })
+            .pipe(res)
+            
+        };
     }
 
     exists (filename) {
@@ -89,6 +94,13 @@ class GStore extends BaseStore {
     delete (filename) {
         return this.bucket.file(filename).delete();
     }
+}
+
+function getTargetName(image, targetDir) {
+    var ext = path.extname(image.name);
+    var name = path.basename(image.name, ext).replace(/\W/g, '_');
+
+    return path.join(targetDir, name + '-' + Date.now() + ext);
 }
 
 module.exports = GStore;
