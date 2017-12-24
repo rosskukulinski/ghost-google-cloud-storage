@@ -99,7 +99,7 @@ class GStore extends BaseStore {
             });
             rs.on('end', function(){
                 debug('Image %s successfully read', options.path);
-                return resolve(content);
+                return resolve(contents);
             });
         });
     }
