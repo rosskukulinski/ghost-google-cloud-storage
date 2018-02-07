@@ -16,6 +16,7 @@ class GStore extends BaseStore {
             projectId: options.projectId,
             keyFilename: options.key
         });
+        this.subDir = getSubdir(config);
         this.bucket = gcs.bucket(options.bucket);
         this.assetDomain = options.assetDomain || `${options.bucket}.storage.googleapis.com`;
         // only set insecure from config if assetDomain is set
@@ -24,7 +25,6 @@ class GStore extends BaseStore {
         }
         // default max-age is 3600 for GCS, override to something more useful
         this.maxAge = options.maxAge || 2678400;
-        this.options = options;
     }
 
     save(image) {
@@ -40,11 +40,12 @@ class GStore extends BaseStore {
             public: true
         };
         return new Promise((resolve, reject) => {
+            var options = this.options;
             this.bucket.upload(image.path, opts)
             .then(function (data) {
                 debug('Successfully saved image [%s]: %o', targetFilename, data)
-                var fullUrl = path.join('/', getSubdir(this.options),'/content/images/',targetFilename)
-                ddbug('fullUrl %s', fullUrl);
+                var fullUrl = path.join('/', this.subDir,'/content/images/',targetFilename)
+                debug('fullUrl %s', fullUrl);
                 return resolve(fullUrl);
             }).catch(function (e) {
                 debug('Failed to save image [%s]: %o', targetFilename, e)
