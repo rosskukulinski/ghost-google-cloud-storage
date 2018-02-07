@@ -24,7 +24,7 @@ class GStore extends BaseStore {
         }
         // default max-age is 3600 for GCS, override to something more useful
         this.maxAge = options.maxAge || 2678400;
-        this.config = options;
+        this.options = options;
     }
 
     save(image) {
