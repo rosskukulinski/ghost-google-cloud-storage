@@ -5,6 +5,7 @@ var storage     = require('@google-cloud/storage'),
     Promise     = require('bluebird'),
     path        = require('path'),
     debug       = require('debug')('ghost-gcloud-storage'),
+    url = require('url'),
     options     = {};
 
 class GStore extends BaseStore {
