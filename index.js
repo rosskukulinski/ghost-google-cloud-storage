@@ -17,6 +17,8 @@ class GStore extends BaseStore {
             projectId: options.projectId,
             keyFilename: options.key
         });
+        debug('config is');
+        debug(config);
         this.subDir = getSubdir(config);
         this.bucket = gcs.bucket(options.bucket);
         this.assetDomain = options.assetDomain || `${options.bucket}.storage.googleapis.com`;
