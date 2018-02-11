@@ -43,7 +43,6 @@ class GStore extends BaseStore {
             public: true
         };
         return new Promise((resolve, reject) => {
-            var options = this.options;
             this.bucket.upload(image.path, opts)
             .then(function (data) {
                 debug('Successfully saved image [%s]: %o', targetFilename, data)
