@@ -33,6 +33,7 @@ class GStore extends BaseStore {
     save(image) {
         if (!options) return Promise.reject('google cloud storage is not configured');
         var targetDir = this.getTargetDir(),
+        subDir = this.subDir,
         targetFilename = getTargetName(image, targetDir).toLowerCase();
         debug('Saving image [%s]: %o', targetFilename, image)
         var opts = {
