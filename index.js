@@ -48,7 +48,7 @@ class GStore extends BaseStore {
             this.bucket.upload(image.path, opts)
             .then(function (data) {
                 debug('Successfully saved image [%s]: %o', targetFilename, data)
-                var fullUrl = path.join('/', this.subDir,'/content/images/',targetFilename)
+                var fullUrl = path.join('/', subDir,'/content/images/',targetFilename)
                 debug('fullUrl %s', fullUrl);
                 return resolve(fullUrl);
             }).catch(function (e) {
