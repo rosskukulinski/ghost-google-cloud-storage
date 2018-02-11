@@ -33,7 +33,6 @@ class GStore extends BaseStore {
     save(image) {
         if (!options) return Promise.reject('google cloud storage is not configured');
         var targetDir = this.getTargetDir(),
-        subDir = this.subDir,
         targetFilename = getTargetName(image, targetDir).toLowerCase();
         debug('Saving image [%s]: %o', targetFilename, image)
         var opts = {
@@ -48,7 +47,7 @@ class GStore extends BaseStore {
             this.bucket.upload(image.path, opts)
             .then(function (data) {
                 debug('Successfully saved image [%s]: %o', targetFilename, data)
-                var fullUrl = path.join('/', subDir,'/content/images/',targetFilename)
+                var fullUrl = path.join('/', options.subDir,'/content/images/',targetFilename)
                 debug('fullUrl %s', fullUrl);
                 return resolve(fullUrl);
             }).catch(function (e) {
