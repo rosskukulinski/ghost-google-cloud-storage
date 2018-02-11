@@ -19,7 +19,7 @@ class GStore extends BaseStore {
         });
         debug('config is');
         debug(config);
-        this.subDir = getSubdir(config);
+        this.subDir = options.subdir;
         this.bucket = gcs.bucket(options.bucket);
         this.assetDomain = options.assetDomain || `${options.bucket}.storage.googleapis.com`;
         // only set insecure from config if assetDomain is set
@@ -121,20 +121,6 @@ function getTargetName(image, targetDir) {
     var name = path.basename(image.name, ext).replace(/\W/g, '_');
 
     return path.join(targetDir, name + '-' + Date.now() + ext);
-}
-
-function getSubdir(config) {
-    // Parse local path location
-    var localPath = url.parse(config.get('url')).path,
-        subdir;
-
-    // Remove trailing slash
-    if (localPath !== '/') {
-        localPath = localPath.replace(/\/$/, '');
-    }
-
-    subdir = localPath === '/' ? '' : localPath;
-    return subdir;
 }
 
 module.exports = GStore;
